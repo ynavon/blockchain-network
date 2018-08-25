@@ -1,343 +1,495 @@
-# blockchain-starter-kit
+<!-- [![Build Status](https://travis-ci.org/IBM/blockchainbean.svg?branch=master)](https://travis-ci.org/IBM/blockchainbean) -->
 
-:warning: :construction: :construction_worker:
+# Create a fair trade supply network with Hyperledger Composer and IBM Blockchain Starter Plan
 
-> **DISCLAIMER**: this starter kit is a **prototype** that is currently under development by the IBM Blockchain team. As a result, it may dramatically change, have major bugs, completly fail to work, or disappear altogether. There is **no** officially provided support for this starter kit; any bugs that you report may go unfixed for a longer period of time than you're comfortable with. If you're happy with all of that, then please carry on reading! As we work on this starter kit, we're extremely interested in your feedback about how we could make it better, so please do let us know by raising issues on this GitHub repository!
+This code pattern is based on a recent proof-of-concept developed in collaboration with 
+a coffee roasting company that was nice enough to let us use their supply-chain documents.
+The link to the application that the code pattern is based off of is here: https://www.ibm.com/blockchainbean
 
-:warning: :construction: :construction_worker:
+All documents that were used in the supply chain are available online, and can be found by clicking the
+`view the blockchain` button at https://www.ibm.com/blockchainbean. 
 
-Hello! This GitHub repository contains a starter kit for building a blockchain application using the IBM Blockchain Platform. The starter kit includes everything you need for developing smart contracts, exposing them via RESTful APIs, and building end user applications. It also includes tooling that allows you to set up an IBM Cloud DevOps toolchain that will automatically deploy your blockchain application, and any future changes you make, to the IBM Cloud.
+In this Code Pattern we will create a blockchain app that increases visibility and efficiency in the supply chain of a coffee retailer. The private keys and credentials of the blockchain application will be stored on a Cloudant database. We will use different transactions to show different possible actions for the different participants in the supply chain. This sample application will record all transactions on the IBM Blockchain Starter Plan, and enable a coffee retailer to ensure the customer that their coffee is organic and fair-trade. The Code Pattern can be useful to developers that are looking into learning more about creating applications that mimic a food trust supply chain with Hyperledger Composer.
 
-Follow the steps below to get started:
+When the reader has completed this Code Pattern, they will understand how to:
 
-1. [Setting up the local development environment](#1-setting-up-the-local-development-environment)
-2. [Setting up the project and DevOps toolchain](#2-setting-up-the-project-and-devops-toolchain)
-3. [Cloning the GitHub repository](#3-cloning-the-github-repository)
-4. [Creating a smart contract](#4-creating-a-smart-contract)
-5. [Checking the status of the DevOps toolchain](#5-checking-the-status-of-the-devops-toolchain)
-6. [Accessing the deployed REST server](#6-accessing-the-deployed-rest-server)
-7. [Updating the deployed smart contract](#7-updating-the-deployed-smart-contract)
-8. [Creating an application](#8-creating-an-application)
-9. [Accessing the deployed application](#9-accessing-the-deployed-application)
+* Interact with IBM Blockchain Starter Plan
+* Build a blockchain back-end using Hyperledger Composer
+* Create and use Cloudant NoSQL Database
+* Deploy a Cloud Foundry application that writes and queries to the ledger
 
-## 1. Setting up the local development environment
+<!--Remember to dump an image in this path-->
+![Architecture](/docs/app-architecture.png)
 
-In order to use this starter kit, you will need to know how to develop blockchain applications. The IBM Blockchain Platform is built on open source technologies from the Linux Foundation Hyperledger Project, including Hyperledger Fabric and Hyperledger Composer.
+## Flow
+1. The user deploys the app in IBM Cloud. The user submits transactions.
+2. The transaction is submitted to the blockchain.
+3. When the transaction conforms to the business logic, the data is written to the ledger.
+4. A block is appended to our chain on the IBM Blockchain Starter Plan for the specific channel.
+5. The user can query the blockchain for a particular asset, using the asset's unique id.
 
-You will use these skills later on as part of the starter kit, so don't skip ahead!
+## Included components
+* [IBM Blockchain Starter Plan](https://console.bluemix.net/catalog/services/blockchain): Use the IBM Blockchain Platform to simplify the developmental, governmental, and operational aspects of creating a blockchain solution.
+* [Cloudant NoSQL DB](https://console.ng.bluemix.net/catalog/services/cloudant-nosql-db): A fully managed data layer designed for modern web and mobile applications that leverages a flexible JSON schema.
 
-### Hyperledger Fabric
+## Featured technologies
+* [IBM Blockchain](https://www.ibm.com/blockchain): Blockchain is a shared, immutable ledger for recording the history of transactions.
+* [Databases](https://en.wikipedia.org/wiki/IBM_Information_Management_System#.22Full_Function.22_databases): Repository for storing and managing collections of data.
+* [Cloud](https://www.ibm.com/developerworks/learn/cloud/): Accessing computer and information technology resources through the Internet.
 
-Hyperledger Fabric is a platform for building blockchain applications. Hyperledger Fabric provides the blockchain technology itself, along with APIs and SDKs that allow you to develop smart contracts and end user applications.
+<!-- ## Watch the Video -->
 
-You can learn more about Hyperledger Fabric, including how to set up your local development environment, by following the Hyperledger Fabric tutorials available here: http://hyperledger-fabric.readthedocs.io/en/release-1.1/tutorials.html
+<!-- [![](docs/youtubePicture.png)](https://www.youtube.com/watch?v=wwNAEvbxd54&list=PLVztKpIRxvQXhHlMQttCfYZrDN8aELnzP&index=1&t=1s) -->
+# Prerequisites
+1. If you do not have an IBM Cloud account yet, you will need to create one [here](https://ibm.biz/BdjLxy).
 
-In particular, we recommend that you follow the Hyperledger Fabric "Writing Your First Application" and "Chaincode for Developers" tutorials. These tutorials will teach you how to develop a smart contract, and build an end user application.
+2. Yeoman, to generate app skeleton.
+```
+$ npm install -g generator-hyperledger-composer
+$ npm install -g yo
+```
 
-### Hyperledger Composer
+# Steps
 
-Hyperledger Composer is a framework or layer that builds on top of Hyperledger Fabric, that provides functionality that allows you to model your blockchain business network, and easily generate RESTful APIs and end user applications.
+1. [Create the toolchain](#1-create-the-toolchain)
+2. [Clone the repo](#2-clone-the-repo)
+3. [Use Yeoman to scaffold your project](#3-use-yeoman-to-scaffold-your-project)
+4. [Push smart contract code](#4-push-smart-contract-code)
+5. [Deploy smart contract to IBM Blockchain Starter Plan](#5-deploy-smart-contract-to-ibm-blockchain-starter-plan)
+6. [Post transactions and query the Composer REST Server (Swagger UI)](#6-post-transactions-and-query-the-composer-rest-server-Swagger-UI))
+7. [Launch IBM Blockchain Starter Plan](#7-launch-ibm-blockchain-starter-plan)
+8. [Inspect blocks on IBM Blockchain Starter Plan](#8-inspect-blocks-on-IBM-blockchain-starter-plan)
+9. [Submit fair trade supply data](#9-submit-fair-trade-supply-data)
 
-You can learn more about Hyperledger Composer, including how to set up your local development environment, by following the Hyperledger Composer tutorial available here: https://hyperledger.github.io/composer/latest/tutorials/tutorials.html
 
-In particular, we recommend that you follow the Hyperledger Composer development tutorial. This tutorial will teach you how to develop a smart contract, expose it via a RESTful API, and build an end user application.
+<!-- In this code pattern, we will use the blockchain-starter-kit repository: https://github.com/sstone1/blockchain-starter-kit to
+deploy our smart contract to the cloud. This repo will help us create a DevOps toolchain to automate deployment. -->
 
-### Choosing between the two
+<!-- <img src="https://i.makeagif.com/media/7-24-2018/MATtPg.gif" width="720" height="450" /> -->
 
-This starter kit is designed to work with smart contracts developed using either Hyperledger Fabric or Hyperledger Composer. You can choose either of the two, depending on your skills, and the needs of your blockchain solution.
 
-Please note that currently, this starter kit can only generate RESTful APIs for smart contracts developed using Hyperledger Composer. You will need to build your own RESTful API server for smart contracts developed using Hyperledger Fabric.
+<!-- ![fd](https://i.makeagif.com/media/7-24-2018/MATtPg.gif) -->
 
+## Step 1. Create the toolchain
 
-## 2. Setting up the project and DevOps toolchain
+ ![packageFile](/docs/step12.gif)
 
-To start building a blockchain application using this starter kit, you must first clone this GitHub repository into a new GitHub repository. You will then develop your blockchain application by working on the cloned GitHub repository. You do not need to manually clone this GitHub repository; please carry on reading!
 
-You also want to set up a DevOps toolchain that will automatically build, test, and deploy your blockchain application to the IBM Cloud. The IBM Cloud DevOps service can be used to to run the DevOps toolchain, and this starter kit includes configuration suitable for use with the IBM Cloud DevOps service.
+Go to https://github.com/sstone1/blockchain-starter-kit. Go to step 2, and click on `Set up DevOps toolchain`.
 
-Click the following link to set up a DevOps toolchain for your blockchain application:
+Follow steps in the in the README to create your DevOps toolchain, and GitHub repository. At the end of this step you should have a toolchain with a github repo, and a delivery pipeline, as shown in the last part of step 2 of https://github.com/sstone1/blockchain-starter-kit. Just refresh the toolchain page, and you should see your toolchain have 3 parts - think, code, delivery, as shown in the gif below.  
 
-[Set up DevOps toolchain](https://console.bluemix.net/devops/setup/deploy/?repository=https%3A//github.com/sstone1/blockchain-starter-kit&branch=master&env_id=ibm%3Ayp%3Aus-south&deploy-region=ibm%3Ayp%3Aus-south)
+## Step 2. Clone the repo
 
-The "Create a Toolchain" page will appear:
+ ![packageFile](/docs/gitClone.gif)
 
-![Toolchain initial screen](./media/toolchain-initial.png)
 
-You must need to specify a name for your DevOps toolchain in the "Toolchain Name" field. In this example, I'll use "simons-blockchain-app" as the toolchain name:
+Now we need to clone the repo we have just created. Click on the github button in the middle, which will take you to your new GitHub repo. Now, click on the green `clone or download` button on the right side of the page. This should give you a URL. Save this, you'll need it in the next step. Now in your terminal, find a place where you would like to start your project. In terminal, execute the following
+```git clone https://github.com/<yourUsername/projectname>.git```
 
-![Toolchain name specified](./media/toolchain-name-specified.png)
-
-Next, if you haven't authorized the IBM Cloud DevOps service to access your GitHub organization, you will see an "Authorize" button:
-
-![Toolchain authorization required](./media/toolchain-auth-required.png)
-
-You must click this button and authorize the IBM Cloud DevOps service to access your GitHub organization to continue. You will then see the following options:
-
-![Toolchain authorization complete](./media/toolchain-auth-complete.png)
-
-You must now specify a name for your clone of this GitHub repository. We recommend that you give it the same name that you used for the DevOps toolchain. In this example, I'll use "simons-blockchain-app" as the name of the cloned GitHub repository:
-
-![Toolchain GitHub options specified](./media/toolchain-github-specified.png)
-
-Finally, you must specify a name for the Blockchain service instance you will be using on the Delivery Pipeline form. This can either be an existing service name, or the name of a new Blockchain service to create. Similary for a Cloudant NoSQL DB service which will be used as storage for a Composer wallet. For this example, I'll use "simons-blockchain-service" as the name of the new Blockchain service and "simons-cloudant-service" as the name of the new Cloudant NoSQL DB service.
-
-That's it! Click the "Create" button to create your new DevOps toolchain, and GitHub repository. You should be taken to your newly created DevOps toolchain page:
-
-![Toolchain created](./media/toolchain-created.png)
-
-The "GitHub" button in the middle will take you to your newly created GitHub repository. You will clone this GitHub repository into your local development environment, so you can work on your blockchain application.
-
-The "Delivery Pipeline" button on the right will take you to the delivery pipeline for your DevOps toolchain. From here, you can inspect the output from the latest automated build and deployment of your blockchain application.
-
-## 3. Cloning the GitHub repository
-
-Click on the "GitHub" button to go to your newly created GitHub repository. If you are no longer on the DevOps toolchain page, you can find it by navigating to your GitHub organisation on [https://github.com](https://github.com).
-
-![GitHub repository](./media/github-repo.png)
-
-At the top of the page, you can see a link to the DevOps toolchain - useful if you have lost the link and need to find your way back!
-
-Clone this GitHub repository to your local development environment using your favourite Git tool of choice. If you open this repository in an editor such as Visual Studio Code, you should see the following project structure:
-
-![VSCode initial project structure](./media/vscode-initial.png)
-
-## 4. Creating a smart contract
-
-### Hyperledger Fabric
-
-Create a directory in the `contracts` directory in your GitHub repository. The name of this directory will be the name of the smart contract. Inside this new directory, you can place the Go (.go) files that make up your smart contract developed using Hyperledger Fabric chaincode.
-
-In this example, I have created a smart contract called "marbles":
-
-![Chaincode](./media/chaincode.png)
-
-You can work on this smart contract using your favourite editor, following the documentation on the Hyperledger Fabric website.
-
-### Hyperledger Composer
-
-You can use the Yeoman plugin provided by Hyperledger Composer to create a skeleton smart contract for use in your blockchain application. You should have installed Yeoman and this plugin as part of the first step in this guide.
-
-Using the command line, change into the `contracts` directory in your GitHub repository. Run Yeoman using `yo` to generate a skeleton smart contract in this directory. Ensure that you select the "Hyperledger Composer" generator, and then specify that you want to create a "Business Network" project.
-
-In this example, I have created a smart contract called "simons-network":
-
-![Yeoman business network](./media/yeoman-business-network.png)
-
-![Business network](./media/business-network.png)
-
-You can work on this smart contract using your favourite editor, following the documentation on the Hyperledger Composer website.
-
-### Pushing the changes
-
-The new smart contract will appear as pending changes in your GitHub repository. Add, commit, and push these changes into your GitHub repository. The DevOps toolchain you created earlier will detect these changes, and then automatically build, test, and deploy those changes to the IBM Cloud.
-
-## 5. Checking the status of the DevOps toolchain
-
-Navigate to the DevOps toolchain page, and click on the "Delivery Pipeline" button. You should see the following page, giving you an overview of the current status of your delivery pipeline:
-
-![Delivery Pipeline overview](./media/delivery-pipeline-overview.png)
-
-The delivery pipeline is made up of two phases, "BUILD" and "DEPLOY".
-
-The "BUILD" phase of the delivery pipeline clones your GitHub repository, installs any dependencies, and runs all of the automated unit tests for all of your smart contracts. If any unit tests fail, then the delivery pipeline will fail and your changes will not be deployed.
-
-The "DEPLOY" phase of the delivery pipeline deploys your smart contracts into the IBM Cloud. It is reponsible for provisioning and configuring an instance of the IBM Blockchain Platform: Starter Plan (the blockchain network), an instance of Cloudant (the wallet for blockchain credentials), deploying the smart contracts, and deploying RESTful API servers for each deployed smart contract.
-
-If you click "View logs and history", you can see the latest logs for your build:
-
-![Delivery Pipeline logs](./media/delivery-pipeline-logs.png)
-
-Both "BUILD" and "DELIVERY" phases should be green and showing that no errors have occurred. If this is not the case, you must use the logs to investigate the cause of the errors.
-
-## 6. Accessing the deployed REST server
-
-### Hyperledger Fabric
-
-Currently, this starter kit does not deploy a RESTful API server for smart contracts developed using Hyperledger Fabric.
-
-### Hyperledger Composer
-
-The DevOps toolchain has automatically deployed a RESTful API server for each deployed smart contract. You can use these RESTful APIs to build end user applications that interact with a smart contract.
-
-The URLs for the deployed RESTful API servers are available in the logs for the "DELIVERY" phase, but you can also find them in the [IBM Cloud Dashboard](https://console.bluemix.net/dashboard/apps). The RESTful API server is deployed as an application, with a name made up of "composer-rest-server-" and the name of the smart contract. In this example, the RESTful API server is called "composer-rest-server-simons-network":
-
-![IBM Cloud Dashboard](./media/ibm-cloud-dashboard.png)
-
-Click on the application in the list to navigate to the application details page:
-
-![IBM Cloud RESTful API server application](./media/ibm-cloud-rest-app.png)
-
-Click on the "Visit App URL" link at the top to navigate to the RESTful API explorer, that allows you to discover and try out the RESTful APIs for your deployed smart contract:
-
-![RESTful API explorer](./media/rest-api-explorer.png)
-
-## 7. Updating the deployed smart contract
-
-### Hyperledger Fabric
-
-Changes to deployed smart contracts will also be automatically deployed by the DevOps toolchain as well. You can test this by changing the code in a `.go` file in your smart contract.
-
-Add, commit, and push these changes into your GitHub repository. The DevOps toolchain you created earlier will detect these changes, and then automatically build, test, and deploy those changes to the IBM Cloud.
-
-### Hyperledger Composer
-
-Changes to deployed smart contracts will also be automatically deployed by the DevOps toolchain as well. You can test this by adding a new asset definition to a `.cto` file in your smart contract, for example:
+Go into your newly cloned repo. I called my bsk-horea-2.
 
 ```
-asset SimonsAsset extends SampleAsset {
+$ cd bsk-horea-2
+```
 
+## Step 3. Use Yeoman to scaffold your project
+
+ ![packageFile](/docs/yeoman.gif)
+
+Now to the fun part, the smart contracts. Let's use Yeoman. 
+
+
+```
+$ npm install -g generator-hyperledger-composer
+$ npm install -g yo
+$ cd contracts
+$ yo
+```
+```
+$ -> `Hyperledger Composer`
+$ -> `Business Network`
+$ Business network name: `coffeetracker4`
+$ Description: `demo`
+$ Author Name: `Horea`
+$ Author Email: `horea@email.com`
+$ License: `(Apache-2.0)`
+$ Namespace: org.ibm.coffee
+$ Do you want to generate an empty template network?: `Yes`
+```
+
+## Step 4. Push smart contract code
+
+
+ ![packageFile](/docs/packageJson.gif)
+
+First, we need to modify some lines from your newly scaffoled application. Let's cut a few lines inside the `package.json` file. This is found in the
+ `bsk-horea-2/contracts/package.json` file.
+ 
+ Let's remove the lines that start with `pretest`, `lint`, and `test`.
+
+ ![packageFile](/docs/pastePermissions.gif)
+
+ Next, let's first clone the blockchain bean
+directory.
+```
+$ git clone https://github.com/IBM/blockchainbean.git
+```
+
+Next, copy and paste the permissons.acl file from
+ `blockchainbean/contracts/coffeeTrackr/permissions.acl`
+and overwrite your permissons.acl file created from yeoman.
+
+ ![packageFile](/docs/pushRest.gif)
+
+Next, we'll copy the queries.qry file from 
+`blockchainbean/contracts/coffeeTrackr/queries.qry` and paste it 
+in our directory. We shouldn't have a `queries.qry` yet.
+
+After that, let's rename our `bsk-horea-2/contracts/models/org.ibm.coffee.cto` file to 
+`bsk-horea-2/contracts/models/model.cto`, and copy and paste that same file from the 
+blockchainbean directory, as we have been doing.
+
+The last file we need is `blockchainbean/contracts/coffeeTrackr/lib/logic.js` file, 
+and we can just grab that and paste the contents in `bsk-horea-2/contracts/lib/logic.js`.
+
+ ![packageFile](/docs/gitPush.gif)
+
+Now, in terminal, let's push our code up to the GitHub repo with the following commands:
+```
+$ git add .
+$ git commit -m "first commit"
+$ git push origin master
+```
+
+## Step 5. Deploy smart contract to IBM Blockchain Starter Plan
+
+ ![packageFile](/docs/delivery.gif)
+
+Now, we need to check our toolchain that we created in Step 2.
+
+Let's go back to our GitHub repo that we just created. Click on the link that says
+ `Created for Toolchain: ` in the title of the GitHub repo. You will be taken to your `IBM Cloud Toolchains` page.  
+
+Click on the `Delivery` stage.
+
+The pipeline should be triggered now. If it is not, simply go to it, and press the play button on the `Build` stage as shown in the gif. Next, wait for the pipeline to start.
+If there are errors, you may want to check the logs by pressing the `View logs and history` option link on the `Build` stage.
+
+ ![packageFile](/docs/cfApp.gif)
+Once the app successfully builds (you can check this with a simple page refresh), the `Deploy` stage should be triggered. Same as with the `Build` stage, you may want to check the logs if there are errors.
+
+Let's check the logs of the `Deploy` stage by clicking the `View logs and history` button as shown in the gif. We can find the URL of our Cloud Foundry app 
+by finding the `REST_SERVER_URLS` line, close to the bottom of the logs as shown in the gif. 
+
+## Step 6. Post transactions and query the Composer REST Server (Swagger UI)
+
+Once you click on your application URL (this is your Cloud Foundry Node.js application), this will take you to your API documentation, or Swagger UI that was generated from the deployment scripts. The deployment scripts essentially created a Node.js Cloud Foundry instance that is connected to a IBM Blockchain Starter Plan instance. We won't go into too much detail here, but you can find more on Simon's repo.
+
+![packageFile](/docs/API.gif)
+
+Next, go to POST /pourCup, and then paste the following JSON in the data field as shown in the picture above. Click `Try it out!`.
+```
+{ 
+  "$class": "org.ibm.coffee.pourCup",
+  "cupId": "CJB0119" 
 }
 ```
 
-Add, commit, and push these changes into your GitHub repository. The DevOps toolchain you created earlier will detect these changes, and then automatically build, test, and deploy those changes to the IBM Cloud.
+Next, let's query our newly created cup, with our unique cupId. Click on `Query` and GET `/queries/getCupData` and enter in your cupId from above. Then click `Try it out!`.  You should see the relevant details registered from your recent POST call on `/pourCup`. Nice job! You successfully queried the blockchain.
 
-The RESTful API server will be automatically restarted as part of the deployment, and new RESTful APIs will be available for the new asset type that you have defined:
+## Step 7. Launch IBM Blockchain Starter Plan
 
-![Updated RESTful API explorer](./media/rest-api-updated.png)
+![packageFile](/docs/launch1.gif)
 
-## 8. Creating an application
 
-### Hyperledger Fabric
 
-Currently, this starter kit does not assist you in creating applications that can interact with smart contracts developed using Hyperledger Fabric. You will need to develop your own applications from scratch.
+Next, click on the IBM Cloud in the top left corner, and then use the search bar to find your blockchain service that you created from step 2. Click on it, and then on `Launch`. 
 
-Add your applications into the GitHub repository by creating a directory in the `apps` directory in your GitHub repository. The name of this directory will be the name of the application. Inside this new directory, you can place the files that make up your application. You can use any technology you like to develop your applications, but you must provide a Cloud Foundry manifest file named `manifest.yml`. This Cloud Foundry file describes how to deploy to and run your application in the IBM Cloud.
+## Step 8. Inspect blocks on IBM Blockchain Starter Plan
 
-In this example, I have created an application called "marbles":
+ ![packageFile](/docs/5block.gif)
 
-![Chaincode](./media/chaincode-app.png)
+After we launch our IBM Blockchain Starter Plan, let's click on channels on the left-side of the page. You will be greeted with your `defaultchannel` and a dashboard of your blockchain. It will show you details such as number of blocks, time since the last transaction, and recent invokations. We can click on the blue arrow  to expand the details of our block. In this gif, we expland `BLOCK NUMBER 4`. We see the date and time of the transaction, the type of transaction, the UUID, the Chaincode ID and some other actions we can take. Let's click on the 3-dot symobol, under `ACTIONS` and then `View Details`. This will give you your block details. You will see even more specific details of your transaction here, such as the JSON object that is written to the ledger. Nice job! You successfully registered your transaction on the IBM Blockchain Platform! 👏🏼
 
-The contents of the `manifest.yml` file at the bottom of the editor tell Cloud Foundry the command for running this application, the number of instances of the application to start, and the amount of memory each instance is given. For example:
+ ![packageFile](/docs/2more.gif)
 
-```yaml
----
-applications:
-- disk_quota: 1024M
-  name: marbles
-  command: "node app.js"
-  path: "."
-  instances: 1
-  memory: 256M
+I'll quickly show you two more transactions in the gif above, mainly just to show you how fast your blocks are 
+registered on the IBM Blockchain Starter Plan. 
+
+Each time we make a POST request to /pourCup as shown in the gif above, we create a block on the blockchain. You can imagine using those /pourCup endpoints from the Composer REST Server instance with a mobile or web-ui. When certain button clicks or forms are submitted on that mobile or web-ui, each button click or form submission would trigger a POST request to our Composer Rest Server instance, and then trigger a block to be added to your blockchain on the IBM Blockchain Starter Plan service. 
+
+Using these API endpoints you can create applications that leverage the industry standard for blockchain developers - Hyperledger Fabric. This pattern showed you how to build an app with 
+Hyperledger Composer, deploy it onto the IBM Blockchain Starter Plan using a dev-ops toolchain. Our deployed app was simply a Swagger UI, with endpoints that perform CRUD (Create-read-update-delete) on a blockchain.   
+
+
+## Step 9. Submit fair trade supply data
+Now that we have learned how to use our composer-rest-server with the IBM Blockchain Starter Plan, let's get into the smart contracts that we have written. Let's look at our model file first, since that will show us the data schema for our 
+blockchain. You can find the model file at https://github.com/IBM/blockchainbean/blob/master/contracts/coffeeTrackr/models/model.cto.
+
+If we just look at the first few lines in our file, we will see that we have a few `enums` and `concepts`. I won't go into detail here,
+but you can learn more about these types here: https://hyperledger.github.io/composer/latest/reference/cto_language.html.
+
+ ![packageFile](/docs/createGrower.gif)
+
+Let's scroll down to the participants of our network, and we will see we have 5. We have a grower, a regulator, a trader, 
+a retailer, and a shipper. By creating different participants in the network, we can transfer ownership 
+of the coffee throughout the full life cycle of the supply chain. Let's first create the grower. The grower
+will have ownership of the coffee asset as the first part of the supply chain life cycle. We will simply
+`POST` to /grower. 
+
 ```
-
-See the Cloud Foundry and IBM Cloud documentation for further information on this file.
-
-All applications deployed by this starter kit will be automatically bound to the IBM Blockchain Platform: Starter Plan instance (the blockchain network) that was created earlier. The applications can access connection information for the blockchain network from by reading the `VCAP_SERVICES` environment variable. Here is an example value for the `VCAP_SERVICES` environment variable:
-
-```json
 {
-    "ibm-blockchain-5-prod": [
-        {
-            "credentials": {
-                "org1": {
-                    "url": "https://ibmblockchain-starter.ng.bluemix.net",
-                    "network_id": "n334cef0ca48c47f884dad18a9387f36c",
-                    "key": "org1",
-                    "secret": "xxxxxxxx"
-                },
-                "org2": {
-                    "url": "https://ibmblockchain-starter.ng.bluemix.net",
-                    "network_id": "n334cef0ca48c47f884dad18a9387f36c",
-                    "key": "org2",
-                    "secret": "xxxxxxxx"
-                }
-            },
-            "syslog_drain_url": null,
-            "volume_mounts": [],
-            "label": "ibm-blockchain-5-prod",
-            "provider": null,
-            "plan": "ibm-blockchain-plan-v1-starter-prod",
-            "name": "blockchain-simons-blockchain-app",
-            "tags": [
-                "blockchain",
-                "ibm_created"
-            ]
-        }
-    ]
+  "$class": "org.ibm.coffee.Grower",
+  "isFairTrade": true,
+  "growerId": "Grower-0201",
+  "organization": "Ethiopia Gedeb 1 Banko Gotiti GrainPro",
+  "address": {
+    "$class": "org.ibm.coffee.Address",
+    "city": "Gedeb",
+    "country": "Ethiopia"
+  }
 }
 ```
+<!-- 
+Next, we can create the shipper, just like we have created the grower above. We will simply `POST`
+to /shipper.
 
-### Hyperledger Composer
-
-You can use the Yeoman plugin provided by Hyperledger Composer to create a skeleton Angular web application. You should have installed Yeoman and this plugin as part of the first step in this guide.
-
-Using the command line, change into the `contracts` directory in your GitHub repository. Run Yeoman using `yo` to generate a skeleton Angular web application in this directory. Ensure that you select the "Hyperledger Composer" generator, and then specify that you want to create an "Angular" project.
-
-In order to run this command, you will need the business network archive (.bna) file for the currently deployed version of the smart contract.
-
-In this example, I have created an application called "simons-app":
-
-![Yeoman application](./media/yeoman-app.png)
-
-![Application](./media/app.png)
-
-The generated application includes a Cloud Foundry manifest file named `manifest.yml`. This Cloud Foundry file describes how to deploy to and run your application in the IBM Cloud.
-
-The contents of the `manifest.yml` file at the bottom of the editor tell Cloud Foundry the command for running this application, the number of instances of the application to start, and the amount of memory each instance is given.
-
-See the Cloud Foundry and IBM Cloud documentation for further information on this file.
-
-Applications can access the deployed RESTful API server in order to interact with the smart contract. Applications deployed by this starter kit can discover the URL of the RESTful API server by reading the `REST_SERVER_URLS` environment variable, which contains a mapping of business network name to RESTful API server URLs. Here is an example value for the `REST_SERVER_URLS` environment variable:
-
-```json
+```
 {
-    "simons-network": "https://composer-rest-server-simons-network.mybluemix.net"
+  "$class": "org.ibm.coffee.Shipper",
+  "shipperId": "Maersk",
+  "organization": "A.P. Moller–Maersk Group",
+  "address": {
+    "$class": "org.ibm.coffee.Address",
+    "city": "Copenhagen",
+    "country": "Denmark"
+  }
 }
 ```
 
-Generated applications automatically read and use the RESTful API server URL in the `REST_SERVER_URLS` environment variable.
+Next, we can create the regulator, just like we have created the grower above. We will simply `POST`
+to /regulator.
 
-Finally, all applications deployed by this starter kit will be automatically bound to the IBM Blockchain Platform: Starter Plan instance (the blockchain network) that was created earlier. The applications can access connection information for the blockchain network from by reading the `VCAP_SERVICES` environment variable. Here is an example value for the `VCAP_SERVICES` environment variable:
-
-```json
+```
 {
-    "ibm-blockchain-5-prod": [
-        {
-            "credentials": {
-                "org1": {
-                    "url": "https://ibmblockchain-starter.ng.bluemix.net",
-                    "network_id": "n334cef0ca48c47f884dad18a9387f36c",
-                    "key": "org1",
-                    "secret": "xxxxxxxx"
-                },
-                "org2": {
-                    "url": "https://ibmblockchain-starter.ng.bluemix.net",
-                    "network_id": "n334cef0ca48c47f884dad18a9387f36c",
-                    "key": "org2",
-                    "secret": "xxxxxxxx"
-                }
-            },
-            "syslog_drain_url": null,
-            "volume_mounts": [],
-            "label": "ibm-blockchain-5-prod",
-            "provider": null,
-            "plan": "ibm-blockchain-plan-v1-starter-prod",
-            "name": "blockchain-simons-blockchain-app",
-            "tags": [
-                "blockchain",
-                "ibm_created"
-            ]
-        }
-    ]
+  "$class": "org.ibm.coffee.Regulator",
+  "regulatorId": "ICO",
+  "organization": "International Coffee Organization",
+  "address": {
+    "$class": "org.ibm.coffee.Address",
+    "city": "London",
+    "country": "England",
+    "street": "22 Berners Street"
+  }
+}
+``` -->
+
+ ![packageFile](/docs/createTrader.gif)
+
+Again, we can create the trader, just like we have created the grower above. We will simply `POST`
+to /Trader.
+
+```
+{
+  "$class": "org.ibm.coffee.Trader",
+  "traderId": "Trader-0791",
+  "organization": "Royal Coffee New York",
+  "address": {
+    "$class": "org.ibm.coffee.Address",
+    "city": "South Plainfield",
+    "country": "USA",
+    "street": "661 Hadley Rd",
+    "zip": "07080"
+  }
 }
 ```
 
-### Pushing the changes
+<!-- Lastly, we can create the retailer, just like we have created the grower above. We will simply `POST`
+to /retailer.
 
-The new application will appear as pending changes in your GitHub repository. Add, commit, and push these changes into your GitHub repository. The DevOps toolchain you created earlier will detect these changes, and then automatically build, test, and deploy those changes to the IBM Cloud.
+```
+{
+  "$class": "org.ibm.coffee.Retailer",
+  "retailerId": "BrooklynRoasting",
+  "organization": "Brooklyn Roasting Company",
+  "address": {
+    "$class": "org.ibm.coffee.Address",
+    "city": "Brooklyn",
+    "country": "USA",
+    "street": "25 Jay St",
+    "zip": "11201"
+  }
+}
+``` -->
+ ![packageFile](/docs/addCoffee.gif)
 
-## 9. Accessing the deployed application
+Next, we will create a batch of coffee on the network. This is going to be a large batch, and will 
+make many cups of coffee. We will simply `POST` to /addCoffee. Note that we are referencing 
+the growerId the we have created in the step above - the coffee will be owned by the grower at this 
+in the supply chain.
 
-The DevOps toolchain has automatically deployed each application.
+```
+{
+  "$class": "org.ibm.coffee.addCoffee",
+  "size": "LARGE",
+  "roast": "DARK",
+  "batchState": "READY_FOR_DISTRIBUTION",
+  "grower": "resource:org.ibm.coffee.Grower#Grower-0201"
+}
+```
 
-The URLs for the deployed applications are available in the logs for the "DELIVERY" phase, but you can also find them in the IBM Cloud Dashboard. In this example, the application is called "simons-app":
+What we now need to do is to do a `/GET` to /coffee. This will show us the batchId of the coffee we 
+have just added from the step above. Grab that batchId and use it in the subsequent steps.
+WARNING: IF YOU USE MINE YOU WILL GET AN ERROR!. 
 
-![IBM Cloud Dashboard](./media/ibm-cloud-dashboard-2.png)
+ ![packageFile](/docs/submitFairTradeDocs.gif)
 
-Click on the application in the list to navigate to the application details page:
+Next, the fun part. We need to upload the data received from our supply chain, and post it to the blockchain.
+To do this, we will `/POST` to /submitFairTradeData.
 
-![IBM Cloud application](./media/ibm-cloud-app.png)
+```
+{
+    "$class": "org.ibm.coffee.submitFairTradeData",
+    "reportName": "Fair Trade Coffee Supply Chain Report",
+    "organizationDescription": "YCFCU is an Ethiopian coffee producing, processing, and exporting cooperative union founded in 2002. YCFCU represents 23 base level cooperatives, all located in the Gedeo Zone, within the Southern NationsNationalities and Peope (SNNPR) ethnically-based region of Ethiopia. Given that its members depend on coffee as their sole source of income, YCFCU aims to maximize financial returns to its members through its linkages with international markets.",
+    "reportYear": 2016,
+    "fairtradePremiumInvested": "$182273",
+  "investmentTitle1": "School Classroom Addition",
+  "investmentAmount1": "$30,626",
+  "investmentTitle2": "Road Infrastructure",
+  "investmentAmount2": "$43,251",
+  "investmentTitle3": "Food Security",
+  "investmentAmount3": "$34,411",
+  "batchId": "2vf5yiaey"
+  }
+```
 
-Click on the "Visit App URL" link at the top to navigate to the application:
+This data is based on the document that was given to us from the coffee roasting company. You can see 
+a screenshot of the document below. We are simply taking some of the important fields from that 
+document and uploading them. https://www.ibm.com/thought-leadership/blockchainbean/static/FairTrade.pdf
 
-![Running application](./media/running-app.png)
+![packageFile](/docs/fairTradeDoc.png)
+
+![packageFile](/docs/submitPackingListAndCoffee.gif)
+
+Next, we will continue adding supply chain data. We will submit the packing list invoice that 
+shows the shipping details of our coffee batch. To do this, we will simply `/POST` to 
+/submitPackingList. Note that all we did in our .cto file is create the necessary 
+fields based on the documents received from our supply chain. In our logic file, we just 
+simply set the data to the data fields. Finally, if we do a `/GET` on our coffee asset, 
+we will see that the asset will be updated with all of the data fields we have set 
+from our previous transactions. You will also see that the owner will be updated 
+to be the trader after this /submitPackingList transaction. 
+
+```
+  {
+    "$class": "org.ibm.coffee.submitPackingList",
+    "grower": "resource:org.ibm.coffee.Grower#Grower-0201",
+    "trader": "resource:org.ibm.coffee.Trader#Trader-0791",
+    "PL_Invoice_no": "0067",
+    "PL_IssueDate": "2017-09-19",
+    "PL_ICO_no": "010/0150/0128",
+    "PL_ICO_Lot": "Lot 7",
+    "PL_FDA_NO": "15752850924",
+    "PL_Bill_of_Lading_No": "961972237",
+    "PL_LoadedVessel": "NorthernMagnum",
+    "PL_VesselVoyage_No": "1707",
+    "PL_Container_No": "redacted",
+    "PL_Seal_no": "ML-Dj0144535 20 DRY 8’6",
+    "PL_timestamp": "2018-06-17",
+    "batchId": "23wrt3jnh"
+  }
+```
+
+![packageFile](/docs/submitWeightTally.gif)
+
+Nice. We're doing great so far. Keep it up! We're almost done :) 
+
+Next, we will submit the details of our coffee once we have received the shipment. We will get 
+some data from our supply chain about the status of our coffee. Does it have signs of insect activity?
+Does it have holes in the container? How many bags are expected? We will input all this data to the
+blockchain.
+
+```
+  {
+    "$class": "org.ibm.coffee.submitInboundWeightTally",
+    "coffeeBatch": "resource:org.ibm.coffee.Coffee#u94sf62run",
+    "dateStripped": "6 Oct 2017",
+    "marks": "010/0150/0128 Lot 7",
+    "bagsExpected": 150,
+    "condition": {
+      "$class": "org.ibm.coffee.Condition",
+      "condensation": false,
+      "holeInContainer": false
+    },
+    "insectActivity": false,
+    "batchId": "23wrt3jnh"
+  }
+```
+
+The last thing we will need to do is to submit our cupping details. Our retailer will rate how the 
+coffee tastes, and will give it an overall rating, based on flavor, aftertaste, and other details.
+To do this, we will simply `/POST` to /submitCupping. We can also make a `/GET` to coffee and 
+see that our batch is updated with all of our relevant supply chain data.
+
+```
+  {
+    "$class": "org.ibm.coffee.submitCupping",
+    "coffeeBatch": "resource:org.ibm.coffee.Coffee#4210",
+    "date": "12 April 2018",
+    "cupper": "Brian",
+    "aroma": 9,
+    "flavor": 8,
+    "afterTaste": 8,
+    "acidity": 8,
+    "body": 9,
+    "finalScore": 89.00,
+    "batchId": "23wrt3jnh"
+  }
+```
+
+Nice. Great job! So at this point, we have finished submitting all of the supply chain details. Give 
+yourself a pat on the back. You made it! So now, we have a working Proof of concept for tracking the 
+life cycle of coffee from the grower all the way to the retailer which sells it. Not only that, but we 
+even track the customer's purchase on the supply chain, and give them a way to see where exactly their 
+coffee is coming from, how much the growers were paid, who shipped the coffee, what condition the 
+coffee received in, and how the roasters rated the coffee. We have a lot here. Not only that, but we
+track the customer's purchase on the blockchain using /pourCup.
+
+## Bonus Step: Code Pattern summary
+
+To summarize, what we have done in the code pattern is model a supply chain network. We have taken 
+the documents given by the various participants in our supply-chain network and we have submitted
+the data to the blockchain. We have used the IBM Blockchain Starter Plan to easily inspect and 
+see our transactions details, and we have created REST-API endpoints in the cloud using 
+the starter-kit. We have used a delivery toolchain to deploy our smart contracts to the cloud, and 
+have made it easy to submit subsequent changes to the chaincode by simply committing new code to our
+GitHub repo. The delivery pipeline will detect any changes, and trigger our build and deliver stage 
+to create a new Cloud Foundry app with our REST-API endpoints. Those REST-API endpoints are linked 
+to our IBM Blockchain Starter Plan, so that each time we write data to the blockchain, we will be able 
+to view and inspect all the relevant details of our transactions on the platform. All we need is a nice
+UI where we can submit our transactions, and then in that UI we can simply use those REST-API endpoints 
+to submit data to the blockchain. Hope this was helpful, and as always, I am open to contributions.
+
+Thank you for reading, I hope you enjoyed it. Go build something awesome! 🙌🏼
+
+<!-- ## Deploy to IBM Cloud -->
+
+
+<!-- [![Deploy to IBM Cloud](https://bluemix.net/deploy/button.png)](https://bluemix.net/deploy?repository=https://github.com/IBM/watson-second-opinion) -->
+# Links
+
+* [IBM Blockchain - Marbles demo](https://github.com/IBM-Blockchain/marbles)
+* [Hyperledger Composer](https://hyperledger.github.io/composer/latest/index.html)
+
+
+# Learn more
+
+* **Blockchain Code Patterns**: Enjoyed this Code Pattern? Check out our other [Blockchain Code Patterns](https://developer.ibm.com/code/technologies/blockchain/)
+
+* **Blockchain 101**: Learn why IBM believes that blockchain can transform businesses, industries – and even the world. [Blockchain 101](https://developer.ibm.com/code/technologies/blockchain/)
+
+# License
+[Apache 2.0](LICENSE)
+
