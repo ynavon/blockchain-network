@@ -1,0 +1,187 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+rule NetworkAdminUser {
+    description: "Grant business network administrators full access to user resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "**"
+    action: ALLOW
+}
+
+rule NetworkAdminSystem {
+    description: "Grant business network administrators full access to system resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "org.hyperledger.composer.system.**"
+    action: ALLOW
+}
+
+/**
+ * Access all - control rule for kosher-network
+ */
+rule Default {
+    description: "Allow all participants access to all resources"
+    participant: "ANY"
+    operation: ALL
+    resource: "org.kosher.poc.*"
+    action: ALLOW
+}
+
+rule SystemACL {
+  description:  "System ACL to permit all access"
+  participant: "ANY"
+  operation: ALL
+  resource: "org.hyperledger.composer.system.**"
+  action: ALLOW
+}
+
+/**
+ * Rules for Participant registry access
+ org.kosher.poc.Holder
+ org.kosher.poc.KashrutMashgiach
+ org.kosher.poc.REGULATOR
+ org.kosher.poc.CONSUMER
+ */
+rule CONSUMER {
+    description: "Allow all participants access to all resources"
+    participant: "org.kosher.poc.CONSUMER"
+    operation: ALL
+    resource: "org.kosher.poc.*"
+    action: ALLOW
+}
+rule REGULATOR {
+    description: "Allow all participants access to all resources"
+    participant: "org.kosher.poc.REGULATOR"
+    operation: ALL
+    resource: "org.kosher.poc.*"
+    action: ALLOW
+}
+rule KashrutMashgiach {
+    description: "Allow all participants access to all resources"
+    participant: "org.kosher.poc.KashrutMashgiach"
+    operation: ALL
+    resource: "org.kosher.poc.*"
+    action: ALLOW
+}
+rule Holder {
+    description: "Allow all participants access to all resources"
+    participant: "org.kosher.poc.Holder"
+    operation: ALL
+    resource: "org.kosher.poc.*"
+    action: ALLOW
+}
+/**
+ * Rules for Asset registry access
+ org.kosher.poc.Product
+ org.kosher.poc.KashrutCertificat
+ org.kosher.poc.HistorianRecord
+ */
+rule ALL_Product {
+    description: "Grant All Participants in org.kosher.poc.* namespace All access to Product assets"
+    participant: "org.kosher.poc.*"
+    operation: ALL
+    resource: "org.kosher.poc.Product"
+    action: ALLOW
+}
+
+rule ALL_KashrutCertificat {
+    description: "Grant All Participants in org.kosher.poc.* namespace All access to Product assets"
+    participant: "org.kosher.poc.*"
+    operation: ALL
+    resource: "org.kosher.poc.KashrutCertificat"
+    action: ALLOW
+}
+
+rule ALL_HistorianRecord {
+    description: "Grant All Participants in org.kosher.poc.* namespace All access to Product assets"
+    participant: "org.kosher.poc.*"
+    operation: ALL
+    resource: "org.kosher.poc.HistorianRecord"
+    action: ALLOW
+}
+
+/**
+ * Rules for Transaction invocations
+ org.kosher.poc.InvokeNewKosherCertificate
+ org.kosher.poc.RevokeKosherCertificate
+ org.kosher.poc.RevokeProductkashrut
+ org.kosher.poc.Trade
+ org.kosher.poc.MergeINTOProduct
+ org.kosher.poc.StartDemo2
+ org.kosher.poc.PRDQuery
+ 
+ */
+rule ALL_InvokeNewKosherCertificate {
+    description: "Grant All Participants in org.kosher.poc.* namespace All access to Transaction"
+    participant: "org.kosher.poc.*"
+    operation: ALL
+    resource: "org.kosher.poc.InvokeNewKosherCertificate"
+    action: ALLOW
+}
+
+rule ALL_RevokeKosherCertificate {
+    description: "Grant All Participants in org.kosher.poc.* namespace All access to Transaction"
+    participant: "org.kosher.poc.*"
+    operation: ALL
+    resource: "org.kosher.poc.RevokeKosherCertificate"
+    action: ALLOW
+}
+
+rule ALL_RevokeProductkashrut {
+    description: "Grant All Participants in org.kosher.poc.* namespace All access to Transaction"
+    participant: "org.kosher.poc.*"
+    operation: ALL
+    resource: "org.kosher.poc.RevokeProductkashrut"
+    action: ALLOW
+}
+
+rule ALL_Trade {
+    description: "Grant All Participants in org.kosher.poc.* namespace All access to Transaction"
+    participant: "org.kosher.poc.*"
+    operation: ALL
+    resource: "org.kosher.poc.Trade"
+    action: ALLOW
+}
+
+rule ALL_MergeINTOProduct {
+    description: "Grant All Participants in org.kosher.poc.* namespace All access to Transaction"
+    participant: "org.kosher.poc.*"
+    operation: ALL
+    resource: "org.kosher.poc.MergeINTOProduct"
+    action: ALLOW
+}
+
+rule ALL_StartDemo2 {
+    description: "Grant All Participants in org.kosher.poc.* namespace All access to Transaction"
+    participant: "org.kosher.poc.*"
+    operation: ALL
+    resource: "org.kosher.poc.StartDemo2"
+    action: ALLOW
+}
+/*
+Remove all other  ACLs
+*/
+/**
+ * Make sure all resources are locked down by default.
+ * If permissions need to be granted to certain resources, that should happen
+ * above this rule. Anything not explicitly specified gets locked down.
+
+rule Default {
+    description: "Deny all participants access to all resources"
+    participant: "ANY"
+    operation: ALL
+    resource: "org.kosher.poc.*"
+    action: DENY
+}*/
