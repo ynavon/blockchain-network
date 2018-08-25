@@ -1,3 +1,0 @@
-# regulatornetwork
-
-demo
