@@ -3,7 +3,7 @@
     "composer": "^0.19.14-20180809130819"
   },
   "name": "regulatornetwork",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "demo",
   "scripts": {
     "prepublish": "mkdirp ./dist && composer archive create --sourceType dir --sourceName . -a ./dist/regulatornetwork.bna"
